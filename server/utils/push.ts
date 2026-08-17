@@ -13,7 +13,9 @@ export async function sendPushToAll(
   notification: { title: string; body: string; url: string },
 ) {
   const config = useRuntimeConfig(event)
-  if (!config.vapidPrivateJwk || !config.vapidSubject) {
+  const privateJWK = event.context.cloudflare?.env.NUXT_VAPID_PRIVATE_JWK ?? config.vapidPrivateJwk
+  const adminContact = event.context.cloudflare?.env.NUXT_VAPID_SUBJECT ?? config.vapidSubject
+  if (!privateJWK || !adminContact) {
     throw new Error('VAPID secrets are not configured')
   }
 
@@ -25,11 +27,11 @@ export async function sendPushToAll(
       if (!subscription) return
 
       const request = await buildPushHTTPRequest({
-        privateJWK: config.vapidPrivateJwk,
+        privateJWK,
         subscription,
         message: {
           payload: notification,
-          adminContact: config.vapidSubject,
+          adminContact,
           options: { ttl: 300, urgency: 'high' },
         },
       })
