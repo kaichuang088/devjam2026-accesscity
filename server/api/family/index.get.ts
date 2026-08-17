@@ -1,5 +1,5 @@
-import { db } from '../../utils/store'
+import { getFamily } from '../../utils/family'
 
-export default defineEventHandler(() => {
-  return { ...db.family, members: db.members }
+export default defineEventHandler(async (event) => {
+  return getFamily(event)
 })

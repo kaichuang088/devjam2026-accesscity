@@ -1,4 +1,5 @@
 import { db, nowHHMM } from '../utils/store'
+import { sendPushToFamilyCaregivers } from '../utils/push'
 
 /**
  * Care Agent 的 Check-in：Detect → Ask → Wait → Escalate（企劃書 §4.7）
@@ -7,7 +8,10 @@ import { db, nowHHMM } from '../utils/store'
  *   no-response  等待逾時未回覆 → 同樣升級為 Care Alert（來源標成「未回覆」）
  */
 export default defineEventHandler(async (event) => {
-  const { answer } = await readBody<{ answer: 'ok' | 'need-help' | 'no-response' }>(event)
+  const { answer, familyCode } = await readBody<{
+    answer: 'ok' | 'need-help' | 'no-response'
+    familyCode?: string
+  }>(event)
 
   db.checkins.push({ id: `c_${Date.now()}`, answer, createdAt: new Date().toISOString() })
 
@@ -48,7 +52,15 @@ export default defineEventHandler(async (event) => {
       acknowledged: false,
     })
 
-    // TODO: 推播給所有已連結的照顧者（FCM / APNs）
+    const latestAlert = db.alerts[0]!
+    const push = sendPushToFamilyCaregivers(event, familyCode, {
+      title: latestAlert.title,
+      body: latestAlert.message,
+      url: '/caregiver/alerts',
+    }).catch((error) => console.error('Check-in push failed', error))
+    const executionContext = event.context.cloudflare?.context
+    if (executionContext) executionContext.waitUntil(push)
+    else await push
   }
 
   return { ok: true, escalated: answer !== 'ok' }

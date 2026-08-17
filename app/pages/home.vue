@@ -33,7 +33,14 @@ async function enableNotifications() {
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       }))
 
-    await $fetch('/api/push/subscribe', { method: 'POST', body: subscription.toJSON() })
+    await $fetch('/api/push/subscribe', {
+      method: 'POST',
+      body: {
+        ...subscription.toJSON(),
+        role: user.value?.role,
+        familyCode: user.value?.familyCode,
+      },
+    })
     await registration.showNotification('Accessity notifications enabled', {
       body: 'This device can now receive SOS alerts even when the website is closed.',
       icon: '/mimo-icon.png',

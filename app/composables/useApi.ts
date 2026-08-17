@@ -64,7 +64,8 @@ export const api = {
 
   async login(email: string, password: string): Promise<User> {
     // TODO: 串接後端 —— POST /api/auth/login { email, password }，回傳 token 後存起來
-    if (!USE_MOCK) return request<User>('/auth/login', { method: 'POST', body: { email, password } })
+    if (!USE_MOCK)
+      return request<User>('/auth/login', { method: 'POST', body: { email, password } })
     return mock(email.includes('naijia') ? mockCaregiver : { ...mockUser, email })
   },
 
@@ -145,7 +146,8 @@ export const api = {
   async parseRequirement(text: string): Promise<RequirementChip[]> {
     // TODO: 串接後端 —— POST /api/agent/requirement { text }
     //       後端再呼叫 LLM（Requirement Agent）把自然語言轉成結構化 constraints
-    if (!USE_MOCK) return request<RequirementChip[]>('/agent/requirement', { method: 'POST', body: { text } })
+    if (!USE_MOCK)
+      return request<RequirementChip[]>('/agent/requirement', { method: 'POST', body: { text } })
     const chips = [...mockRequirementChips]
     if (text.trim()) chips[0] = { key: 'destination', label: text.trim() }
     return mock(chips, 600)
@@ -227,7 +229,8 @@ export const api = {
 
   async startTrip(destination: string, routeId: string): Promise<Trip> {
     // TODO: 串接後端 —— POST /api/trips { destination, routeId }，並開始上傳位置
-    if (!USE_MOCK) return request<Trip>('/trips', { method: 'POST', body: { destination, routeId } })
+    if (!USE_MOCK)
+      return request<Trip>('/trips', { method: 'POST', body: { destination, routeId } })
     return mock({ ...mockTrip, destination })
   },
 
@@ -245,9 +248,10 @@ export const api = {
     return mock(mockAlerts)
   },
 
-  async sendSos(): Promise<CareAlert> {
+  async sendSos(familyCode?: string | null): Promise<CareAlert> {
     // TODO: 串接後端 —— POST /api/alerts/sos（帶目前 GPS 座標）
-    if (!USE_MOCK) return request<CareAlert>('/alerts/sos', { method: 'POST' })
+    if (!USE_MOCK)
+      return request<CareAlert>('/alerts/sos', { method: 'POST', body: { familyCode } })
     return mock(mockAlerts[1]!)
   },
 
@@ -257,10 +261,13 @@ export const api = {
     return mock({ ok: true } as ApiOk)
   },
 
-  async checkIn(answer: 'ok' | 'need-help' | 'no-response'): Promise<ApiOk> {
+  async checkIn(
+    answer: 'ok' | 'need-help' | 'no-response',
+    familyCode?: string | null,
+  ): Promise<ApiOk> {
     // TODO: 串接後端 —— POST /api/checkin { answer }
     //       answer = 'need-help' 或 'no-response'（逾時未回覆）時，後端會升級為 Care Alert
-    if (!USE_MOCK) return request('/checkin', { method: 'POST', body: { answer } })
+    if (!USE_MOCK) return request('/checkin', { method: 'POST', body: { answer, familyCode } })
     return mock({ ok: true } as ApiOk)
   },
 

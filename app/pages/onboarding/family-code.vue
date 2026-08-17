@@ -2,6 +2,7 @@
 /** 照顧者：產生並分享 Family Code */
 const { data: family, refresh } = await useAsyncData('family-code', () => api.getFamily())
 const copied = ref(false)
+const { user, setUser } = useSession()
 
 async function copyCode() {
   // TODO: 正式版可加上 navigator.share（行動裝置分享面板）
@@ -12,9 +13,17 @@ async function copyCode() {
   }
 }
 
+async function shareCode() {
+  if (!import.meta.client || !family.value) return
+  const text = `Join my Accessity family with code ${family.value.code}`
+  if (navigator.share) await navigator.share({ title: 'Accessity Family Code', text })
+  else await copyCode()
+}
+
 async function regenerate() {
   // TODO: 串接後端 —— POST /api/family/code
-  await api.regenerateFamilyCode()
+  const nextFamily = await api.regenerateFamilyCode()
+  if (user.value) setUser({ ...user.value, familyCode: nextFamily.code })
   await refresh()
 }
 </script>
@@ -25,7 +34,9 @@ async function regenerate() {
 
     <div>
       <h2 class="title-xl">Your Family Code</h2>
-      <p class="body">Share this code so the person you care for can connect to your family group.</p>
+      <p class="body">
+        Share this code so the person you care for can connect to your family group.
+      </p>
     </div>
 
     <UiCard padding="20px 16px">
@@ -37,8 +48,10 @@ async function regenerate() {
     </UiCard>
 
     <div class="row">
-      <UiButton variant="outline" @click="copyCode">{{ copied ? 'Copied!' : 'Copy Code' }}</UiButton>
-      <UiButton>Share Code</UiButton>
+      <UiButton variant="outline" @click="copyCode">{{
+        copied ? 'Copied!' : 'Copy Code'
+      }}</UiButton>
+      <UiButton @click="shareCode">Share Code</UiButton>
     </div>
 
     <UiButton variant="ghost" @click="regenerate">Regenerate Code</UiButton>

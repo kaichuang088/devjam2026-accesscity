@@ -18,6 +18,7 @@ const props = withDefaults(
 )
 
 const { speak, stopSpeaking } = useSpeech()
+const { user } = useSession()
 
 /** 等待回覆的秒數；正式版建議 60–120 秒，demo 用 20 秒比較好演 */
 const WAIT_SECONDS = 20
@@ -35,7 +36,7 @@ function showToast(text: string) {
 
 async function sendSos() {
   // POST /api/alerts/sos —— 後端會立刻建立 Care Alert 通知照顧者
-  await api.sendSos()
+  await api.sendSos(user.value?.familyCode)
   sosOpen.value = false
   showToast('已通知照顧者，請待在原地')
   speak('已經通知你的照顧者，請待在原地等一下。', { force: true })
@@ -69,7 +70,7 @@ async function escalate() {
   stopWaiting()
   checkinOpen.value = false
   // POST /api/checkin { answer: 'no-response' } —— 後端建立 Care Alert
-  await api.checkIn('no-response')
+  await api.checkIn('no-response', user.value?.familyCode)
   showToast('沒有收到回覆，已通知照顧者')
   speak('我沒有收到你的回覆，已經通知你的照顧者。', { force: true })
 }
@@ -77,7 +78,7 @@ async function escalate() {
 async function answerCheckin(answer: 'ok' | 'need-help') {
   stopWaiting()
   // POST /api/checkin —— 'ok' 不打擾照顧者；'need-help' 立即升級為 Care Alert
-  await api.checkIn(answer)
+  await api.checkIn(answer, user.value?.familyCode)
   checkinOpen.value = false
   showToast(answer === 'ok' ? '好的，我會繼續陪著你' : '已通知照顧者')
   speak(answer === 'ok' ? '好的，我會繼續陪著你。' : '已經通知你的照顧者了。', { force: true })
@@ -119,9 +120,7 @@ defineExpose({ openSos, askCheckin })
       title="Are you okay?"
       message="We noticed that you have stayed in the same location for more than 15 minutes. Do you need help?"
     >
-      <p class="countdown">
-        {{ remaining }} 秒內沒有回覆的話，我會幫你通知照顧者
-      </p>
+      <p class="countdown">{{ remaining }} 秒內沒有回覆的話，我會幫你通知照顧者</p>
       <UiButton variant="green" @click="answerCheckin('ok')">I'm OK</UiButton>
       <UiButton variant="danger" @click="answerCheckin('need-help')">I Need Help</UiButton>
     </ModalDialog>

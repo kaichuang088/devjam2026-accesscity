@@ -2,6 +2,7 @@
 const code = ref('')
 const joined = ref(false)
 const error = ref('')
+const { user, setUser } = useSession()
 
 // TODO: 串接後端 —— GET /api/family/invites（待接受的邀請）
 const { data: family } = await useAsyncData('connect-family', () => api.getFamily())
@@ -10,8 +11,15 @@ async function connect() {
   error.value = ''
   // TODO: 串接後端 —— POST /api/family/join { code }
   const res = await api.joinFamily(code.value)
-  if (res.ok) joined.value = true
-  else error.value = '代碼不正確或已過期'
+  if (res.ok) {
+    joined.value = true
+    if (user.value)
+      setUser({
+        ...user.value,
+        familyCode: res.family.code,
+        connectedCaregiver: { id: 'u_naijia', name: '陳乃嘉' },
+      })
+  } else error.value = '代碼不正確或已過期'
 }
 
 async function accept() {
@@ -41,6 +49,8 @@ async function accept() {
         class="input"
         placeholder="AC------"
         style="margin: 10px 0; letter-spacing: 0.15em"
+        maxlength="8"
+        @input="code = code.toUpperCase()"
       />
       <UiButton @click="connect">Connect</UiButton>
       <p v-if="error" class="muted" style="color: var(--red); margin-top: 8px">{{ error }}</p>

@@ -1,10 +1,10 @@
 import type { CareAlert } from '#shared/types/accessity'
 import { db, nowHHMM } from '../../utils/store'
-import { sendPushToAll } from '../../utils/push'
+import { sendPushToFamilyCaregivers } from '../../utils/push'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ lat?: number; lng?: number }>(event).catch(
-    () => ({}) as { lat?: number; lng?: number },
+  const body = await readBody<{ lat?: number; lng?: number; familyCode?: string }>(event).catch(
+    () => ({}) as { lat?: number; lng?: number; familyCode?: string },
   )
 
   // TODO: 立即推播給所有已連結的照顧者（FCM / APNs），並寫入事件紀錄
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 
   db.alerts.unshift(alert)
 
-  const push = sendPushToAll(event, {
+  const push = sendPushToFamilyCaregivers(event, body.familyCode, {
     title: 'Emergency Alert',
     body: `${alert.memberName} has requested immediate assistance.`,
     url: '/caregiver/alerts',
