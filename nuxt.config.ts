@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
+  nitro: { preset: 'cloudflare' },
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   app: {
@@ -10,8 +11,10 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'AI-powered Accessible Navigation & Care Companion' },
         { name: 'theme-color', content: '#0b5f5c' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
       ],
       link: [
+        { rel: 'manifest', href: '/manifest.webmanifest' },
         // Mimo 當作 App 圖示
         { rel: 'icon', type: 'image/png', href: '/mimo-icon.png' },
         { rel: 'apple-touch-icon', href: '/mimo.png' },

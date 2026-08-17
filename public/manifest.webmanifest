@@ -1,0 +1,15 @@
+{
+  "name": "Accessity — AccessCity",
+  "short_name": "Accessity",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#0b5f5c",
+  "icons": [
+    {
+      "src": "/mimo.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    }
+  ]
+}
