@@ -2,7 +2,9 @@ import { buildPushHTTPRequest, type PushSubscription } from '@pushforge/builder'
 import type { H3Event } from 'h3'
 
 export function pushSubscriptions(event: H3Event): KVNamespace {
-  const namespace = event.context.cloudflare?.env.PUSH_SUBSCRIPTIONS
+  const namespace =
+    event.context.cloudflare?.env.PUSH_SUBSCRIPTIONS ??
+    (typeof PUSH_SUBSCRIPTIONS === 'undefined' ? undefined : PUSH_SUBSCRIPTIONS)
   if (!namespace)
     throw createError({ statusCode: 503, statusMessage: 'Push storage is not configured' })
   return namespace
@@ -13,8 +15,14 @@ export async function sendPushToAll(
   notification: { title: string; body: string; url: string },
 ) {
   const config = useRuntimeConfig(event)
-  const privateJWK = event.context.cloudflare?.env.NUXT_VAPID_PRIVATE_JWK ?? config.vapidPrivateJwk
-  const adminContact = event.context.cloudflare?.env.NUXT_VAPID_SUBJECT ?? config.vapidSubject
+  const privateJWK =
+    event.context.cloudflare?.env.NUXT_VAPID_PRIVATE_JWK ??
+    (typeof NUXT_VAPID_PRIVATE_JWK === 'undefined' ? undefined : NUXT_VAPID_PRIVATE_JWK) ??
+    config.vapidPrivateJwk
+  const adminContact =
+    event.context.cloudflare?.env.NUXT_VAPID_SUBJECT ??
+    (typeof NUXT_VAPID_SUBJECT === 'undefined' ? undefined : NUXT_VAPID_SUBJECT) ??
+    config.vapidSubject
   if (!privateJWK || !adminContact) {
     throw new Error('VAPID secrets are not configured')
   }
