@@ -27,6 +27,10 @@ export default defineNuxtConfig({
     googleRoutesApiKey: '',
     // 瀏覽器無法取得定位時使用的預設起點（地址或地名）。
     googleRoutesOrigin: '',
+    // Web Push：production 以 NUXT_VAPID_* Cloudflare secrets 提供。
+    vapidPublicKey: '',
+    vapidPrivateJwk: '',
+    vapidSubject: '',
     public: {
       // TODO: 之後改由 .env 提供（NUXT_PUBLIC_API_BASE）
       apiBase: '/api',

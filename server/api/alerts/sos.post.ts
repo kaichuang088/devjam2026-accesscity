@@ -1,5 +1,6 @@
 import type { CareAlert } from '#shared/types/accessity'
 import { db, nowHHMM } from '../../utils/store'
+import { sendPushToAll } from '../../utils/push'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ lat?: number; lng?: number }>(event).catch(
@@ -22,5 +23,15 @@ export default defineEventHandler(async (event) => {
   }
 
   db.alerts.unshift(alert)
+
+  const push = sendPushToAll(event, {
+    title: 'Emergency Alert',
+    body: `${alert.memberName} has requested immediate assistance.`,
+    url: '/caregiver/alerts',
+  }).catch((error) => console.error('SOS push failed', error))
+  const executionContext = event.context.cloudflare?.context
+  if (executionContext) executionContext.waitUntil(push)
+  else await push
+
   return alert
 })
